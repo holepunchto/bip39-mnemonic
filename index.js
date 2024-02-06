@@ -9,6 +9,8 @@ module.exports = {
   generateMnemonic
 }
 
+const MAX_UINT11 = 0b11111111111
+
 function generateSeed (length = 32) {
   const seed = b4a.alloc(length)
   sodium.randombytes_buf(seed)
@@ -27,31 +29,17 @@ function generateMnemonic (seed, language = 'english') {
   const wordlist = loadWordlist(language)
   const entropy = generateEntropy(seed)
 
-  const bitlen = entropy.byteLength * 8
-  const indices = new Array(Math.floor(bitlen / 11))
+  const words = []
 
-  indices.fill(0)
+  const state = { buffer: entropy, offset: 0, value: 0 }
 
-  let pos = 0
+  while (true) {
+    const index = readUInt11(state)
+    if (index === -1) break
 
-  for (let i = 0; i < entropy.length; i++) {
-    const byte = entropy[i]
-
-    const idx = Math.floor((i * 8) / 11)
-    const bitpos = 11 - ((i * 8) % 11)
-
-    indices[idx] += shift(byte, bitpos - 8)
-
-    if (bitpos >= 8 || idx === indices.length - 1) continue
-
-    const mask = (2 << (7 - bitpos)) - 1
-    const right = (byte & mask) << (3 + bitpos)
-    indices[idx + 1] += (byte & mask) << (3 + bitpos)
-
-    pos += 8
+    words.push(wordlist[index])
   }
 
-  const words = indices.map(i => wordlist[i])
   const delimiter = language === 'japanese' ? '\u3000' : ' '
 
   return words.join(delimiter).trim()
@@ -79,6 +67,29 @@ function generateEntropy (seed) {
 
   output[total - 1] &= (0xff ^ (0xff >> cklen))
   return output.subarray(0, total)
+}
+
+function readUInt11 (state) {
+  const idx = state.offset / 8
+  if (idx >= state.buffer.byteLength) return -1
+
+  const byte = state.buffer[idx]
+  const height = 11 - (state.offset % 11) // height of leading bit
+
+  state.offset += 8
+  state.value += shift(byte, height - 8)
+
+  const value = state.value & MAX_UINT11
+
+  if (height > 8) return readUInt11(state)
+
+  state.value = 0
+  if (height === 8) return value
+
+  // shift bottom limb by (11 - (8 - height))
+  state.value = shift(byte, 3 + height)
+
+  return value
 }
 
 // when n is positive, shift left n bits
