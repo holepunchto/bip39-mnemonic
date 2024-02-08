@@ -3,10 +3,12 @@ const path = require('path')
 const sodium = require('sodium-universal')
 const b4a = require('b4a')
 const assert = require('nanoassert')
+const { pbkdf2, sha512 } = require('@holepunchto/pbkdf2')
 
 module.exports = {
   generateSeed,
-  generateMnemonic
+  generateMnemonic,
+  mnemonicToSeed
 }
 
 function generateSeed (length = 32) {
@@ -35,6 +37,19 @@ function generateMnemonic (seed, language = 'english') {
   const delimiter = language === 'japanese' ? '\u3000' : ' '
 
   return words.join(delimiter).trim()
+}
+
+function mnemonicToSeed (mnemonic, passphrase = '') {
+  const input = b4a.from(mnemonic.replace(/\u3000/g, ' '))
+  const salt = b4a.from('mnemonic' + passphrase)
+
+  return pbkdf2({
+    password: input,
+    salt,
+    iterations: 2048,
+    length: 64,
+    hash: sha512
+  })
 }
 
 function sha256 (data, output = b4a.alloc(32)) {
