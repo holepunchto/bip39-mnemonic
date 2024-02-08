@@ -9,8 +9,6 @@ module.exports = {
   generateMnemonic
 }
 
-const MAX_UINT11 = 0b11111111111
-
 function generateSeed (length = 32) {
   const seed = b4a.alloc(length)
   sodium.randombytes_buf(seed)
@@ -30,13 +28,7 @@ function generateMnemonic (seed, language = 'english') {
   const entropy = generateEntropy(seed)
 
   const words = []
-
-  const state = { buffer: entropy, offset: 0, value: 0 }
-
-  while (true) {
-    const index = readUInt11(state)
-    if (index === -1) break
-
+  for (const index of uint11Reader(entropy)) {
     words.push(wordlist[index])
   }
 
@@ -62,34 +54,42 @@ function generateEntropy (seed) {
 
   const entropy = output.subarray(0, len)
   const cksum = output.subarray(len)
-  
+
   sha256(entropy, cksum)
 
   output[total - 1] &= (0xff ^ (0xff >> cklen))
   return output.subarray(0, total)
 }
 
-function readUInt11 (state) {
-  const idx = state.offset / 8
-  if (idx >= state.buffer.byteLength) return -1
+function uint11Reader (state) {
+  return uintReader(state, 11)
+}
 
-  const byte = state.buffer[idx]
-  const height = 11 - (state.offset % 11) // height of leading bit
+function * uintReader (buffer, width) {
+  const MAX_UINT = (2 << (width - 1)) - 1
 
-  state.offset += 8
-  state.value += shift(byte, height - 8)
+  let pos = 0
+  let value = 0
 
-  const value = state.value & MAX_UINT11
+  while (true) {
+    const offset = pos >> 3 // byte offset
 
-  if (height > 8) return readUInt11(state)
+    if (offset >= buffer.byteLength) return value
+    const byte = buffer[offset]
 
-  state.value = 0
-  if (height === 8) return value
+    const leftover = (offset + 1) * 8 - pos
+    const height = width - (pos % width)
 
-  // shift bottom limb by (11 - (8 - height))
-  state.value = shift(byte, 3 + height)
+    const read = Math.min(height, leftover)
 
-  return value
+    pos += read
+    value += shift(byte, height - leftover)
+
+    if (pos % width) continue
+
+    yield value & MAX_UINT
+    value = 0
+  }
 }
 
 // when n is positive, shift left n bits
@@ -99,8 +99,4 @@ function shift (val, n) {
   if (n > 0) return val << n
 
   return val >> (-1 * n)
-}
-
-function umask (bits) {
-  return (0xff >> bits) << bits
 }
