@@ -30,6 +30,7 @@ function generateMnemonic (seed, language = 'english') {
   const entropy = generateEntropy(seed)
 
   const words = []
+
   for (const index of uint11Reader(entropy)) {
     words.push(wordlist[index])
   }
@@ -76,12 +77,12 @@ function generateEntropy (seed) {
   return output.subarray(0, total)
 }
 
-function uint11Reader (state) {
-  return uintReader(state, 11)
+function * uint11Reader (state) {
+  yield * uintReader(state, 11)
 }
 
 function * uintReader (buffer, width) {
-  const MAX_UINT = (2 << (width - 1)) - 1
+  const MASK = (2 << (width - 1)) - 1
 
   let pos = 0
   let value = 0
@@ -89,20 +90,20 @@ function * uintReader (buffer, width) {
   while (true) {
     const offset = pos >> 3 // byte offset
 
-    if (offset >= buffer.byteLength) return value
-    const byte = buffer[offset]
+    if (offset >= buffer.byteLength) {
+      return value & MASK
+    }
 
-    const leftover = (offset + 1) * 8 - pos
     const height = width - (pos % width)
+    const leftover = (offset + 1) * 8 - pos
 
-    const read = Math.min(height, leftover)
+    value += shift(buffer[offset], height - leftover)
 
-    pos += read
-    value += shift(byte, height - leftover)
-
+    pos += Math.min(height, leftover)
     if (pos % width) continue
 
-    yield value & MAX_UINT
+    yield value & MASK
+
     value = 0
   }
 }
