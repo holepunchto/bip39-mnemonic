@@ -9,8 +9,12 @@ test('vectors', t => {
   for (const [language, vector] of Object.entries(vectors)) {
     t.comment(language)
 
-    for (const [seed, mnemonic, secret] of vector) {
-      const words = generateMnemonic(b4a.from(seed, 'hex'), language)
+    for (const [entropy, mnemonic, secret] of vector) {
+      const words = generateMnemonic({
+        entropy: b4a.from(entropy, 'hex'),
+        language
+      })
+
       t.is(words, mnemonic)
 
       const result = mnemonicToSeed(mnemonic, 'TREZOR')

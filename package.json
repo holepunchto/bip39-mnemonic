@@ -1,6 +1,6 @@
 {
   "name": "@holepunchto/bip39",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "BIP39 mnemonic for key derivation schemes",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,10 @@
     "nanoassert": "^2.0.0",
     "sodium-universal": "^4.0.0"
   },
-  "directories": {
-    "test": "test"
-  },
+  "files": [
+    "index.js",
+    "wordlist/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/holepunchto/bip39.git"

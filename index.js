@@ -6,16 +6,9 @@ const assert = require('nanoassert')
 const { pbkdf2, sha512 } = require('@holepunchto/pbkdf2')
 
 module.exports = {
-  generateSeed,
+  generateEntropy,
   generateMnemonic,
   mnemonicToSeed
-}
-
-function generateSeed (length = 32) {
-  const seed = b4a.alloc(length)
-  sodium.randombytes_buf(seed)
-
-  return seed
 }
 
 function loadWordlist (language) {
@@ -25,13 +18,13 @@ function loadWordlist (language) {
   return words.split('\n')
 }
 
-function generateMnemonic (seed, language = 'english') {
+function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }) {
   const wordlist = loadWordlist(language)
-  const entropy = generateEntropy(seed)
+  const extended = computeCheckSum(entropy)
 
   const words = []
 
-  for (const index of uint11Reader(entropy)) {
+  for (const index of uint11Reader(extended)) {
     words.push(wordlist[index])
   }
 
@@ -58,7 +51,7 @@ function sha256 (data, output = b4a.alloc(32)) {
   return output
 }
 
-function generateEntropy (seed) {
+function computeCheckSum (seed) {
   assert((seed.byteLength & 4) === 0, 'seed must be a multiple of 4 bytes')
 
   const len = seed.byteLength
@@ -75,6 +68,13 @@ function generateEntropy (seed) {
 
   output[total - 1] &= (0xff ^ (0xff >> cklen))
   return output.subarray(0, total)
+}
+
+function generateEntropy (length = 32) {
+  const seed = b4a.alloc(length)
+  sodium.randombytes_buf(seed)
+
+  return seed
 }
 
 function * uint11Reader (state) {

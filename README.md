@@ -1,1 +1,44 @@
 # bip39
+
+## Usage
+
+```js
+const { generateMnemonic, mnemonicToSeed } = require('@holepunchto/bip39')
+
+const mnemonic = generateMnemonic()
+const seed = mnemonicToSeed(mnemonic)
+```
+
+## API
+
+#### `const mnemonic = generateMnemonic({ entropy, language })`
+
+Generate a new mnemonic.
+
+Optionally pass existing `entropy`.
+
+`language` can be any of the following:
+- `chinese_simplified`
+- `czech`
+- `french`
+- `japanese`
+- `portuguese`
+- `spanish`
+- `chinese_traditional`
+- `english` (default)
+- `italian`
+- `korean`
+- `russian`
+- `turkish`
+
+#### `const seed = mnemonicToSeed(mnemonic)`
+
+Derive a seed from `mnemonic`. This seed should be used to seed a kdf derivation.
+
+#### `const entropy = generateEntropy()`
+
+Helper to generate 32 bytes of entropy suitable for deriving a mnemonic.
+
+## License
+
+Apache-2.0
