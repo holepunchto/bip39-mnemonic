@@ -1,9 +1,28 @@
 const test = require('brittle')
 const b4a = require('b4a')
 
-const { generateMnemonic, mnemonicToSeed } = require('../')
+const { generateEntropy, generateMnemonic, mnemonicToSeed } = require('../')
 
 const vectors = require('./vectors.json')
+
+test('basic', t => {
+  const entropy = generateEntropy()
+
+  t.unlike(entropy, b4a.alloc(32))
+
+  const mnemonic = generateMnemonic()
+  const seeded = generateMnemonic({ entropy })
+
+  t.unlike(mnemonic, seeded)
+  t.alike(seeded, generateMnemonic({ entropy }))
+
+  const seed = mnemonicToSeed(mnemonic)
+  const otherSeed = mnemonicToSeed(seeded)
+
+  t.unlike(seed, b4a.alloc(32))
+  t.unlike(otherSeed, b4a.alloc(32))
+  t.unlike(seed, otherSeed)
+})
 
 test('vectors', t => {
   for (const [language, vector] of Object.entries(vectors)) {

@@ -18,7 +18,7 @@ function loadWordlist (language) {
   return words.split('\n')
 }
 
-function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }) {
+function generateMnemonic ({ entropy = generateEntropy(), language = 'english' } = {}) {
   const wordlist = loadWordlist(language)
   const extended = computeCheckSum(entropy)
 
