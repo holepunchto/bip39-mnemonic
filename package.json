@@ -6,8 +6,8 @@
   "scripts": {
     "test": "standard && brittle test/*.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Holepunch Inc",
+  "license": "Apache-2.0",
   "devDependencies": {
     "brittle": "^3.4.0",
     "standard": "^17.1.0"
