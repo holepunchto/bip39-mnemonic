@@ -4,6 +4,7 @@
   "description": "BIP39 mnemonic for key derivation schemes",
   "main": "index.js",
   "scripts": {
+    "generate-wordlist": "node scripts/generate-wordlist.js",
     "test": "standard && brittle test/*.js"
   },
   "author": "Holepunch Inc",
@@ -20,7 +21,7 @@
   },
   "files": [
     "index.js",
-    "wordlist/*"
+    "wordlist"
   ],
   "repository": {
     "type": "git",

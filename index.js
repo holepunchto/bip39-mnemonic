@@ -1,21 +1,13 @@
-const fs = require('fs')
-const path = require('path')
 const sodium = require('sodium-universal')
 const b4a = require('b4a')
 const assert = require('nanoassert')
 const { pbkdf2, sha512 } = require('@holepunchto/pbkdf2')
+const loadWordlist = require('./wordlist')
 
 module.exports = {
   generateEntropy,
   generateMnemonic,
   mnemonicToSeed
-}
-
-function loadWordlist (language) {
-  const file = path.resolve(__dirname, 'wordlist', language + '.txt')
-  const words = fs.readFileSync(file, 'utf8')
-
-  return words.split('\n')
 }
 
 function generateMnemonic ({ entropy = generateEntropy(), language = 'english' } = {}) {
