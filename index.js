@@ -1,7 +1,7 @@
 const sodium = require('sodium-universal')
 const b4a = require('b4a')
 const assert = require('nanoassert')
-const { pbkdf2, sha512 } = require('@holepunchto/pbkdf2')
+const pbkdf2 = require('@holepunchto/pbkdf2')
 const loadWordlist = require('./wordlist')
 
 module.exports = {
@@ -34,7 +34,7 @@ function mnemonicToSeed (mnemonic, passphrase = '') {
     salt,
     iterations: 2048,
     length: 64,
-    hash: sha512
+    hash: 'sha512'
   })
 }
 

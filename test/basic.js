@@ -5,7 +5,7 @@ const { generateEntropy, generateMnemonic, mnemonicToSeed } = require('../')
 
 const vectors = require('./vectors.json')
 
-test('basic', t => {
+test('basic', async t => {
   const entropy = generateEntropy()
 
   t.unlike(entropy, b4a.alloc(32))
@@ -16,15 +16,15 @@ test('basic', t => {
   t.unlike(mnemonic, seeded)
   t.alike(seeded, generateMnemonic({ entropy }))
 
-  const seed = mnemonicToSeed(mnemonic)
-  const otherSeed = mnemonicToSeed(seeded)
+  const seed = await mnemonicToSeed(mnemonic)
+  const otherSeed = await mnemonicToSeed(seeded)
 
   t.unlike(seed, b4a.alloc(32))
   t.unlike(otherSeed, b4a.alloc(32))
   t.unlike(seed, otherSeed)
 })
 
-test('vectors', t => {
+test('vectors', async t => {
   for (const [language, vector] of Object.entries(vectors)) {
     t.comment(language)
 
@@ -36,7 +36,7 @@ test('vectors', t => {
 
       t.is(words, mnemonic)
 
-      const result = mnemonicToSeed(mnemonic, 'TREZOR')
+      const result = await mnemonicToSeed(mnemonic, 'TREZOR')
       t.is(b4a.toString(result, 'hex'), secret)
     }
   }

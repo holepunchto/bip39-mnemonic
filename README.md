@@ -31,7 +31,7 @@ Optionally pass existing `entropy`.
 - `russian`
 - `turkish`
 
-#### `const seed = mnemonicToSeed(mnemonic)`
+#### `const seed = await mnemonicToSeed(mnemonic)`
 
 Derive a seed from `mnemonic`. This seed should be used to seed a kdf derivation.
 
