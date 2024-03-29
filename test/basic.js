@@ -1,7 +1,12 @@
 const test = require('brittle')
 const b4a = require('b4a')
 
-const { generateEntropy, generateMnemonic, mnemonicToSeed } = require('../')
+const {
+  generateEntropy,
+  generateMnemonic,
+  validateMnemonic,
+  mnemonicToSeed
+} = require('../')
 
 const vectors = require('./vectors.json')
 
@@ -15,6 +20,9 @@ test('basic', async t => {
 
   t.unlike(mnemonic, seeded)
   t.alike(seeded, generateMnemonic({ entropy }))
+
+  t.ok(validateMnemonic(mnemonic))
+  t.ok(validateMnemonic(seeded))
 
   const seed = await mnemonicToSeed(mnemonic)
   const otherSeed = await mnemonicToSeed(seeded)
@@ -35,9 +43,26 @@ test('vectors', async t => {
       })
 
       t.is(words, mnemonic)
+      t.ok(validateMnemonic(mnemonic, { language }))
 
       const result = await mnemonicToSeed(mnemonic, 'TREZOR')
       t.is(b4a.toString(result, 'hex'), secret)
     }
   }
+})
+
+test('invalid mnemonic', async t => {
+  const words = generateMnemonic().split(' ')
+
+  t.ok(validateMnemonic(words.join(' ')))
+  t.absent(validateMnemonic(words.reverse().join(' ')))
+
+  await t.exception(() => mnemonicToSeed(words.join(' ')))
+
+  words.reverse()[0] = 'rrrrrr'
+
+  t.absent(validateMnemonic(words.join(' ')))
+
+  words.fill('notaword')
+  t.absent(validateMnemonic(words.join(' ')))
 })
