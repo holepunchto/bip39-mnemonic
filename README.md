@@ -35,6 +35,10 @@ Optionally pass existing `entropy`.
 
 Derive a seed from `mnemonic`. This seed should be used to seed a kdf derivation.
 
+#### `const valid = validateMnemonic(mnemonic)`
+
+Check whether a given mnemonic is valid
+
 #### `const entropy = generateEntropy()`
 
 Helper to generate 32 bytes of entropy suitable for deriving a mnemonic.

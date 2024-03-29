@@ -2,11 +2,12 @@ const sodium = require('sodium-universal')
 const b4a = require('b4a')
 const assert = require('nanoassert')
 const pbkdf2 = require('@holepunchto/pbkdf2')
-const loadWordlist = require('./wordlist')
+const { detectLanguage, loadWordlist } = require('./wordlist')
 
 module.exports = {
   generateEntropy,
   generateMnemonic,
+  validateMnemonic,
   mnemonicToSeed
 }
 
@@ -26,6 +27,10 @@ function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }
 }
 
 function mnemonicToSeed (mnemonic, passphrase = '') {
+  if (!validateMnemonic(mnemonic)) {
+    throw new Error('Invlaid mnemonic')
+  }
+
   const input = b4a.from(mnemonic.replace(/\u3000/g, ' '))
   const salt = b4a.from('mnemonic' + passphrase)
 
@@ -38,6 +43,38 @@ function mnemonicToSeed (mnemonic, passphrase = '') {
   })
 }
 
+function validateMnemonic (mnemonic) {
+  const words = mnemonic.replace(/\u3000/g, ' ').trim().split(' ')
+  const language = detectLanguage(words)
+
+  if (!language) return false
+  if (words.length % 3 !== 0) return false
+
+  const wordlist = loadWordlist(language)
+
+  const indexes = []
+  for (const word of words) {
+    const index = wordlist.indexOf(word)
+    if (index === -1) return false
+
+    indexes.push(index)
+  }
+
+  const bits = words.length * 11
+  const entropy = (bits * 32 / 33) >> 3
+
+  const extended = b4a.alloc(Math.ceil(bits / 8))
+  const seed = extended.subarray(0, entropy)
+
+  try {
+    uint11Writer(extended, indexes)
+  } catch (e) {
+    return false
+  }
+
+  return b4a.equals(extended, computeCheckSum(seed))
+}
+
 function sha256 (data, output = b4a.alloc(32)) {
   sodium.crypto_hash_sha256(output, data)
   return output
@@ -47,8 +84,8 @@ function computeCheckSum (seed) {
   assert((seed.byteLength & 4) === 0, 'seed must be a multiple of 4 bytes')
 
   const len = seed.byteLength
-  const cklen = len >> 2
-  const total = len + (cklen >> 3) + 1
+  const cklen = len >> 2 // cksum bits
+  const total = len + Math.ceil(cklen / 8)
 
   const output = b4a.alloc(len + 32)
   output.set(seed)
@@ -58,7 +95,9 @@ function computeCheckSum (seed) {
 
   sha256(entropy, cksum)
 
+  // only append cklen bits
   output[total - 1] &= (0xff ^ (0xff >> cklen))
+
   return output.subarray(0, total)
 }
 
@@ -71,6 +110,10 @@ function generateEntropy (length = 32) {
 
 function * uint11Reader (state) {
   yield * uintReader(state, 11)
+}
+
+function uint11Writer (buf, uints) {
+  return uintWriter(buf, uints, 11)
 }
 
 function * uintReader (buffer, width) {
@@ -100,6 +143,32 @@ function * uintReader (buffer, width) {
   }
 }
 
+function uintWriter (buffer, uints, width) {
+  let pos = 0
+
+  while (true) {
+    const offset = pos >> 3 // byte offset
+
+    const i = Math.floor(pos / width)
+    if (i >= uints.length) break
+
+    if (offset >= buffer.length) {
+      throw new Error('Failed to encode uints')
+    }
+
+    const rem = 8 - pos % 8
+    const height = (i + 1) * width - pos
+
+    const value = shift(uints[i], rem - height)
+
+    buffer[offset] += mask(value, rem)
+
+    pos += Math.min(rem, height)
+  }
+
+  return buffer
+}
+
 // when n is positive, shift left n bits
 // when n is negative, shift right -n bits
 function shift (val, n) {
@@ -107,4 +176,9 @@ function shift (val, n) {
   if (n > 0) return val << n
 
   return val >> (-1 * n)
+}
+
+function mask (val, bits) {
+  if (bits < 32) return val & ((1 << bits) - 1)
+  return val % (2 ** bits)
 }
