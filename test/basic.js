@@ -34,7 +34,6 @@ test('basic', async t => {
 
 test('vectors', async t => {
   for (const [language, vector] of Object.entries(vectors)) {
-    if (language !== 'english') continue
     t.comment(language)
 
     for (const [entropy, mnemonic, secret] of vector) {
