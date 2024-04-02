@@ -1,8 +1,7 @@
 const sodium = require('sodium-universal')
 const b4a = require('b4a')
 const assert = require('nanoassert')
-const pbkdf2 = require('@holepunchto/pbkdf2')
-const { detectLanguage, loadWordlist } = require('./wordlist')
+const pbkdf2 = require('@holepunchto/pbkdf2/sync')
 
 module.exports = {
   generateEntropy,
@@ -12,7 +11,7 @@ module.exports = {
 }
 
 function generateMnemonic ({ entropy = generateEntropy(), language = 'english' } = {}) {
-  const wordlist = loadWordlist(language)
+  const wordlist = require('./wordlist/english.json')
   const extended = computeCheckSum(entropy)
 
   const words = []
@@ -45,12 +44,12 @@ function mnemonicToSeed (mnemonic, passphrase = '') {
 
 function validateMnemonic (mnemonic) {
   const words = mnemonic.replace(/\u3000/g, ' ').trim().split(' ')
-  const language = detectLanguage(words)
+  const language = 'english'
 
   if (!language) return false
   if (words.length % 3 !== 0) return false
 
-  const wordlist = loadWordlist(language)
+  const wordlist = require('./wordlist/english.json')
 
   const indexes = []
   for (const word of words) {
