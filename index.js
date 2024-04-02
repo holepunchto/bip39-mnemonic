@@ -27,7 +27,7 @@ function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }
 
 async function mnemonicToSeed (mnemonic, passphrase = '') {
   if (!validateMnemonic(mnemonic)) {
-    throw new Error('Invlaid mnemonic')
+    throw new Error('Invalid mnemonic')
   }
 
   const input = b4a.from(mnemonic.replace(/\u3000/g, ' '))
