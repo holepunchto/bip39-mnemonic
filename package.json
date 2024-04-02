@@ -17,7 +17,7 @@
     "@holepunchto/pbkdf2": "^2.0.0",
     "b4a": "^1.6.6",
     "nanoassert": "^2.0.0",
-    "sodium-universal": "^4.0.0"
+    "sodium-universal": "^4.0.1"
   },
   "files": [
     "index.js",
