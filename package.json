@@ -1,6 +1,6 @@
 {
   "name": "@holepunchto/bip39",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "BIP39 mnemonic for key derivation schemes",
   "main": "index.js",
   "scripts": {
