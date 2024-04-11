@@ -6,6 +6,7 @@ const { detectLanguage, loadWordlist } = require('./wordlist')
 module.exports = {
   generateEntropy,
   generateMnemonic,
+  normalizeMnemonic,
   validateMnemonic,
   mnemonicToSeed
 }
@@ -25,12 +26,18 @@ function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }
   return words.join(delimiter).trim()
 }
 
+function normalizeMnemonic (mnemonic) {
+  return mnemonic.trim().replace(/\u3000/, ' ').split(/\s+/).map(c => c.toLowerCase()).join(' ')
+}
+
 async function mnemonicToSeed (mnemonic, passphrase = '') {
+  mnemonic = normalizeMnemonic(mnemonic)
+
   if (!validateMnemonic(mnemonic)) {
     throw new Error('Invalid mnemonic')
   }
 
-  const input = b4a.from(mnemonic.replace(/\u3000/g, ' '))
+  const input = b4a.from(mnemonic)
   const salt = b4a.from('mnemonic' + passphrase)
 
   const output = b4a.alloc(64)
