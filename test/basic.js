@@ -66,3 +66,23 @@ test('invalid mnemonic', async t => {
   words.fill('notaword')
   t.absent(validateMnemonic(words.join(' ')))
 })
+
+test('normalize mnemonic', async t => {
+  const phrase = generateMnemonic()
+  const words = phrase.split(' ')
+  const trail = phrase + ' '
+  const uppercase = words.map(w => w.toUpperCase()).join(' ')
+  const whitespace = words.join('  ')
+  const tabbed = words.join('\t')
+  const newline = words.join('\n')
+
+  t.ok(validateMnemonic(phrase))
+
+  const seed = await mnemonicToSeed(phrase)
+
+  t.alike(await mnemonicToSeed(trail), seed)
+  t.alike(await mnemonicToSeed(uppercase), seed)
+  t.alike(await mnemonicToSeed(whitespace), seed)
+  t.alike(await mnemonicToSeed(tabbed), seed)
+  t.alike(await mnemonicToSeed(newline), seed)
+})
