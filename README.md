@@ -1,9 +1,9 @@
-# bip39
+# bip39-mnemonic
 
 ## Usage
 
 ```js
-const { generateMnemonic, mnemonicToSeed } = require('@holepunchto/bip39')
+const { generateMnemonic, mnemonicToSeed } = require('bip39-mnemonic')
 
 const mnemonic = generateMnemonic()
 const seed = mnemonicToSeed(mnemonic)
