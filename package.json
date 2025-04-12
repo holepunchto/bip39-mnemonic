@@ -1,6 +1,6 @@
 {
   "name": "bip39-mnemonic",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "BIP39 mnemonic for key derivation schemes",
   "main": "index.js",
   "scripts": {
