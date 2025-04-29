@@ -5,6 +5,7 @@ const {
   generateEntropy,
   generateMnemonic,
   validateMnemonic,
+  mnemonicToEntropy,
   mnemonicToSeed
 } = require('../')
 
@@ -85,4 +86,15 @@ test('normalize mnemonic', async t => {
   t.alike(await mnemonicToSeed(whitespace), seed)
   t.alike(await mnemonicToSeed(tabbed), seed)
   t.alike(await mnemonicToSeed(newline), seed)
+})
+
+test('mnemonic to entropy', async t => {
+  const entropy = b4a.alloc(32)
+  for (let i = 0; i < entropy.byteLength; i++) entropy[i] = i
+
+  const phrase = generateMnemonic({ entropy })
+  const phraseJapanese = generateMnemonic({ entropy, language: 'japanese' })
+
+  t.alike(mnemonicToEntropy(phrase), entropy)
+  t.alike(mnemonicToEntropy(phraseJapanese), entropy)
 })
