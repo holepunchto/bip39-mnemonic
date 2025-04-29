@@ -8,6 +8,7 @@ module.exports = {
   generateMnemonic,
   normalizeMnemonic,
   validateMnemonic,
+  mnemonicToEntropy,
   mnemonicToSeed
 }
 
@@ -24,6 +25,45 @@ function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }
   const delimiter = language === 'japanese' ? '\u3000' : ' '
 
   return words.join(delimiter).trim()
+}
+
+function mnemonicToEntropy (mnemonic) {
+  const words = mnemonic.replace(/\u3000/g, ' ').trim().split(' ')
+  const language = detectLanguage(words)
+
+  if (!language) {
+    throw new Error('Language not recognised')
+  }
+
+  if (words.length % 3 !== 0) {
+    throw new Error('Invalid length')
+  }
+
+  const wordlist = loadWordlist(language)
+
+  const indexes = []
+  for (const word of words) {
+    const index = wordlist.indexOf(word)
+    if (index === -1) {
+      throw new Error('Bad word')
+    }
+
+    indexes.push(index)
+  }
+
+  const bits = words.length * 11
+  const len = (bits * 32 / 33) >> 3
+
+  const extended = b4a.alloc(Math.ceil(bits / 8))
+  const entropy = extended.subarray(0, len)
+
+  uint11Writer(extended, indexes)
+
+  if (!b4a.equals(extended, computeCheckSum(entropy))) {
+    throw new Error('Invalid checksum')
+  }
+
+  return entropy
 }
 
 function normalizeMnemonic (mnemonic) {
@@ -54,35 +94,12 @@ async function mnemonicToSeed (mnemonic, passphrase = '') {
 }
 
 function validateMnemonic (mnemonic) {
-  const words = mnemonic.replace(/\u3000/g, ' ').trim().split(' ')
-  const language = detectLanguage(words)
-
-  if (!language) return false
-  if (words.length % 3 !== 0) return false
-
-  const wordlist = loadWordlist(language)
-
-  const indexes = []
-  for (const word of words) {
-    const index = wordlist.indexOf(word)
-    if (index === -1) return false
-
-    indexes.push(index)
-  }
-
-  const bits = words.length * 11
-  const entropy = (bits * 32 / 33) >> 3
-
-  const extended = b4a.alloc(Math.ceil(bits / 8))
-  const seed = extended.subarray(0, entropy)
-
   try {
-    uint11Writer(extended, indexes)
+    mnemonicToEntropy(mnemonic)
   } catch (e) {
     return false
   }
-
-  return b4a.equals(extended, computeCheckSum(seed))
+  return true
 }
 
 function sha256 (data, output = b4a.alloc(32)) {
