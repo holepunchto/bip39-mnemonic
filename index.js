@@ -9,7 +9,8 @@ module.exports = {
   normalizeMnemonic,
   validateMnemonic,
   mnemonicToEntropy,
-  mnemonicToSeed
+  mnemonicToSeed,
+  entropyToMnemonic
 }
 
 function generateMnemonic ({ entropy = generateEntropy(), language = 'english' } = {}) {
@@ -25,6 +26,10 @@ function generateMnemonic ({ entropy = generateEntropy(), language = 'english' }
   const delimiter = language === 'japanese' ? '\u3000' : ' '
 
   return words.join(delimiter).trim()
+}
+
+function entropyToMnemonic (entropy, { language = 'english' } = {}) {
+  return generateMnemonic({ entropy, language })
 }
 
 function mnemonicToEntropy (mnemonic) {

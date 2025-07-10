@@ -31,6 +31,14 @@ Optionally pass existing `entropy`.
 - `russian`
 - `turkish`
 
+#### `const mnemomic = entropyToMnemonic(entropy, { language = 'english })`
+
+Alias for generateMnemomic called with explicit entropy
+
+#### `const entropy = mnemonicToEntropy(mnemonic)`
+
+Returns the entropy for a given mnemonic
+
 #### `const seed = await mnemonicToSeed(mnemonic)`
 
 Derive a seed from `mnemonic`. This seed should be used to seed a kdf derivation.
